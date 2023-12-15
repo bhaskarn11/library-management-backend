@@ -56,6 +56,7 @@ class Settings(BaseSettings):
             user=values.get("DB_USER"),
             host=values.get("DB_HOST"),
             password=values.get("DB_PASSWORD"),
+            path=f"/{values.get("DB_NAME", "")}"
         )
 
     # SMTP Config Environment Variables
