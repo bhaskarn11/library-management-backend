@@ -1,5 +1,7 @@
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 
 from app.database import engine
@@ -27,6 +29,8 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+app.add_middleware(GZipMiddleware)
+app.add_middleware(TrustedHostMiddleware)
 
 app.include_router(items.router)
 app.include_router(users.router)

@@ -19,7 +19,7 @@ from_email: str = settings.EMAILS_FROM_EMAIL
 
 def reset_password_email(email: str, otp: str):
     template = env.get_template("password-reset.html")
-    content = template.render()
+    content = template.render(email=email, otp=otp)
 
     msg = EmailMessage()
     msg["Subject"] = "Password Reset Request"
@@ -85,7 +85,7 @@ def borrow_notification(borrow: Borrow, action_type: Literal['ISSUE', 'RENEW', '
 def confirm_email(email: str, otp: str):
 
     template = env.get_template("confirm_email.html")
-    content = template.render()
+    content = template.render(email=email, otp=otp)
 
     msg = EmailMessage()
     msg["Subject"] = "Confirm your email"
