@@ -36,3 +36,5 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         return {"status": success, "detail": "User deleted"}
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+

@@ -26,6 +26,7 @@ class User(UserBase):
     join_date: date
     disabled: bool
     type: Enum
+    email_verified: bool
     borrows: List[Borrow] = []
 
     class Config:
@@ -40,3 +41,13 @@ class ResetPassword(BaseModel):
     email: EmailStr
     otp: str
     new_password: str
+
+
+class EmailChangeRequest(BaseModel):
+    new_email: EmailStr
+    password: str
+
+class VerifyEmail(BaseModel):
+    otp: str
+    user_id: int
+    

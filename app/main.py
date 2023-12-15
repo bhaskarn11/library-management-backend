@@ -4,7 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app import models
-from app.endpoints import items, users, auth
+from app.endpoints import items, users, auth, accounts
 from app.config import settings
 
 models.Base.metadata.create_all(engine)
@@ -31,4 +31,5 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(items.router)
 app.include_router(users.router)
 app.include_router(auth.router)
+app.include_router(accounts.router)
 

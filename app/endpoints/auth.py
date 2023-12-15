@@ -6,7 +6,7 @@ from pydantic import EmailStr
 
 from app.database import get_db
 from app.schemas import users, token
-from app.services.auth import authenticate_user, get_current_active_user, get_current_user, request_otp, verify_otp
+from app.services.auth import authenticate_user, get_current_active_user, get_current_user
 from app.utils.helper import create_token, hash_password
 
 router = APIRouter(
@@ -33,7 +33,10 @@ def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestF
 
 @router.get("/verify", response_model=users.User)
 def read_users_me(current_user: users.User = Depends(get_current_active_user)):
-    return current_user
+    if current_user:
+        return current_user
+    
+    raise HTTPException(status_code=400, detail="Inactive user")
 
 
 @router.post("/refresh", response_model=token.Token)
@@ -51,23 +54,3 @@ def refresh_access_token(req: Request, res: Response, db: Session = Depends(get_
         raise e
 
 
-@router.post("/reset-password/request")
-def reset_password_request(payload: users.ResetPasswordRequest, db: Session = Depends(get_db)):
-    res = request_otp(payload.email, db)
-    if res:
-        return {"success": True, "message": "Otp sent successfully"}
-    else:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, {"success": False, "message": "Request Failed"})
-
-
-@router.post("/rest-password")
-def reset_password(payload: users.ResetPassword, db: Session = Depends(get_db)):
-    verified = verify_otp(payload.email, payload.otp, db)
-    if verified:
-        db_user = db.query(users.User).filter_by(email=payload.email).first()
-        db_user.hashed_password = hash_password(payload.new_password)
-        db.commit()
-
-        return {"success": True, "message": "Password reset successfully"}
-    return HTTPException(status.HTTP_401_UNAUTHORIZED, {"success": False, "message": "Unauthorized"})
-    

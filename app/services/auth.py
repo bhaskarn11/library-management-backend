@@ -1,4 +1,5 @@
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.dialects.postgresql import insert
 from fastapi import HTTPException, Depends, status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -45,9 +46,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     
     
 def get_current_active_user(current_user: users.User = Depends(get_current_user)):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+    if not current_user.disabled:
+        return current_user
 
 
 def request_otp(email: str, db: Session):
@@ -55,12 +55,23 @@ def request_otp(email: str, db: Session):
     otp = generate_otp()
     db_user = db.query(models.User).filter_by(email=email).first()
     if db_user:
-        db_otp = models.Otp(user_id=db_user, code=otp, 
-        expire_timestamp=datetime.now(timezone.utc) + timedelta(minutes=10))
-        db.add(db_otp)
+        data = {
+            "user_id": db_user.id,
+            "code": otp,
+            "expire_timestamp": datetime.now(timezone.utc) + timedelta(minutes=10)
+        }
+
+        stmt = insert(models.Otp).values(data)
+        upsert_stmt = stmt.on_conflict_do_update(
+            index_elements=["user_id", "code"],
+            index_where=[],
+            set_= data
+        )
+
+        db.execute(upsert_stmt)
         db.commit()
-        return True
-    return False
+        return (True, otp)
+    return (False, None)
 
 
 def verify_otp(email: str, otp: str, db:Session):
