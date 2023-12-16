@@ -32,6 +32,8 @@ class Item(ItemBase):
     publish_date: date
     available: bool = True
     author: Union[str, None]
+    image_link: str | None
+    tags: list = []
 
     class Config:
         orm_mode = True

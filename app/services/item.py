@@ -9,12 +9,16 @@ def get_item_by_id(id: int, db: Session):
 
 
 def create_item(item: items.ItemCreate, db: Session):
-    tags = db.query(models.ItemTags).filter(models.ItemTags.id.in_(item.tags[0:5])).all()
-
-    db_item = models.Item(**item.dict(), tags=tags)
+    tags = db.query(models.ItemTags).filter(models.ItemTags.tag.in_(item.tags[0:5])).all()
+    # print(tags)
+    db_item = models.Item(title=item.title, description=item.description,
+                           author=item.author, publisher=item.publisher, 
+                           publish_date=item.publish_date, isbn=item.isbn, available=item.available,
+                            type=item.type, tags=tags)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
+    print(db_item)
     return db_item
 
 
@@ -43,3 +47,18 @@ def remove_item(id: int, db: Session):
 def get_tags_list(q: str, db: Session, skip: int, limit: int):
     tags = db.query(models.ItemTags).filter(models.ItemTags.tag.ilike(f"%{q}%")).offset(skip).limit(limit).all()
     return tags
+
+
+def add_tag(db: Session, tags: list[str]):
+    try:
+        db_tags = []
+        for tag in tags:
+            db_tag = models.ItemTags(tag=tag)
+            db_tags.append(db_tag)
+
+        db.add_all(db_tags)
+        db.commit()
+        # db.refresh(db_tags)
+        return True
+    except Exception as e:
+        return False

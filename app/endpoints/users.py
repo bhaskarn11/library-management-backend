@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas import users
 from app.services.user import create_user, get_user_by_id, update_user, remove_user_by_id
+from app.utils.emailer import confirm_email
+from app.services.auth import request_otp
 
 router = APIRouter(
     prefix="/users"
@@ -20,8 +22,14 @@ def get_user(id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", tags=["Users"])
-def post_user(user: users.UserCreate, db: Session = Depends(get_db)):
-    return create_user(db, user)
+def post_user(user: users.UserCreate, task: BackgroundTasks, db: Session = Depends(get_db)):
+    user = create_user(db, user)
+    if user:
+        sent, otp = request_otp(user.email, db)
+        if sent: task.add_task(confirm_email, user.email, otp)
+        return user
+    
+    return HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": False, "message": "Could not create user"})
 
 
 @router.patch("/{id}", tags=["Users"])

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     it was created as an excersise 
 """
     PRODUCTION: bool = False
-    SECRET_KEY: str = secrets.token_urlsafe(32)
+    SECRET_KEY: str
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     ALGORITHM = "HS256"

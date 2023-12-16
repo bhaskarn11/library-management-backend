@@ -5,7 +5,7 @@ from app.database import get_db
 from app import models
 from app.schemas.items import ItemCreate, ItemUpdate, Item, SearchQuery, SearchResult, SearchFilters
 
-from app.services.item import get_item_by_id, create_item, remove_item, update_item, get_tags_list
+from app.services.item import get_item_by_id, create_item, remove_item, update_item, get_tags_list, add_tag
 router = APIRouter(
     prefix="/items",
     # dependencies=[Depends(get_current_active_user)]
@@ -38,13 +38,14 @@ def patch_items(id: int, item: ItemUpdate, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while processing")
 
 
-@router.post("/", response_model=Item, tags=["Items"])
+@router.post("/", response_model=Item,tags=["Items"])
 def post_items(item: ItemCreate, db: Session = Depends(get_db)):
     try:
         # print(item)
         return create_item(item, db)
     except Exception as e:
-        return HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Couldn't create item")
+        print(e)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Couldn't create item")
 
 
 @router.post("/search", tags=["Items search endpoint"], response_model=SearchResult)
@@ -77,9 +78,17 @@ def search_items(search_query: SearchQuery, db: Session = Depends(get_db)):
     return sr
 
 
-@router.get("/tags/search", tags=["Item tag search endpoint"])
+@router.get("/tags/search", tags=["Item tag endpoint"])
 def search_tags(q: str, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 
     tags = get_tags_list(q, db, skip, limit)
 
     return tags
+
+
+@router.post("/tags", tags=["Item tag endpoint"])
+def add_tags(tags: list[str], db: Session = Depends(get_db)):
+    success = add_tag(db, tags)
+    if success:
+        return {"success": success, "message": "Tags added"}
+    raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": success, "message": "Tags add failed"})

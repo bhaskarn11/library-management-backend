@@ -51,3 +51,13 @@ class VerifyEmail(BaseModel):
     otp: str
     user_id: int
     
+
+class CredentialType(Enum):
+    EMAIL_VERIFY = "EMAIL_VERIFY"
+    PHONE_VERIFY = "PHONE_VERIFY"
+
+
+
+class RequestOtp(BaseModel):
+    credential_type: CredentialType
+    credential_value: str

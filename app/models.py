@@ -37,14 +37,14 @@ class User(Base):
     type = Column(Enum(UserTypes, name="UserTypes", create_constraint=True))
     disabled = Column(Boolean, default=False)
     
-    borrows = relationship("Borrow", back_populates="borrower")
+    borrows = relationship("Borrow", back_populates="borrower", cascade="all, delete")
 
 
 class Otp(Base):
     __tablename__ = "passcodes"
 
     expire_timestamp = Column(DateTime)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, primary_key=True)
     code = Column(String, primary_key=True)
 
 

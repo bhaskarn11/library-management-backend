@@ -65,3 +65,14 @@ def verify_email(payload: users.VerifyEmail, db: Session = Depends(get_db)):
     
     return HTTPException(status.HTTP_403_FORBIDDEN, 
                          detail={"success": False, "message": "Email verfication failed"})
+
+
+# @router.post("/request-otp")
+# def request_otp(payload: users.RequestOtp, task: BackgroundTasks, db: Session = Depends(get_db)):
+#     _, otp = request_otp(payload.credential_value, db)
+#     if payload.credential_type == users.CredentialType.EMAIL_VERIFY:
+        
+#         task.add_task(confirm_email, payload.credential_value, otp)
+#     elif payload.credential_type == users.CredentialType.PHONE_VERIFY:
+#         task.add_task(confirm_email, payload.credential_value, otp)
+#     return {"success": True, "message": "Email Changed successfully"}

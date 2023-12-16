@@ -22,10 +22,10 @@ def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestF
     user = authenticate_user(db, form_data.username, form_data.password)
     if user:
         token = create_token({"sub": form_data.username})
-        refresh_token = create_token({"sub": user.username}, timedelta(days=1))
-        response.set_cookie(
-            "refreshToken", refresh_token, secure=True,
-            httponly=True, samesite="none", max_age=7*24*60*1000)
+        # refresh_token = create_token({"sub": user.email}, timedelta(days=1))
+        # response.set_cookie(
+        #     "refreshToken", refresh_token, secure=True,
+        #     httponly=True, samesite="none", max_age=7*24*60*1000)
 
         return {"access_token": token, "token_type": "bearer"}
     return HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Access or User not found")
@@ -39,18 +39,18 @@ def read_users_me(current_user: users.User = Depends(get_current_active_user)):
     raise HTTPException(status_code=400, detail="Inactive user")
 
 
-@router.post("/refresh", response_model=token.Token)
-def refresh_access_token(req: Request, res: Response, db: Session = Depends(get_db)):
-    cookies = req.cookies
-    if not cookies.get("refreshToken"):
-        return HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"message": "Unauthorized Access"})
-    refresh_token = cookies.get("refreshToken")
-    try:
-        user = get_current_user(refresh_token, db)
+# @router.post("/refresh", response_model=token.Token)
+# def refresh_access_token(req: Request, res: Response, db: Session = Depends(get_db)):
+#     cookies = req.cookies
+#     refresh_token = cookies.get("refreshToken")
+#     if not refresh_token:
+#         return HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"message": "Unauthorized Access"})
+#     try:
+#         user = get_current_user(refresh_token, db)
 
-        access_token = create_token({"sub": user.username})
-        return {"access_token": access_token, "token_type": "bearer"}
-    except HTTPException as e:
-        raise e
+#         access_token = create_token({"sub": user.username})
+#         return {"access_token": access_token, "token_type": "bearer"}
+#     except HTTPException as e:
+#         raise e
 
 

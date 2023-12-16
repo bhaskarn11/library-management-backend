@@ -14,8 +14,8 @@ pwd_context = CryptContext(schemes="bcrypt", deprecated="auto")
 def generate_otp():
     otp = ''
     for i in range(6):
-        otp = otp.join(secrets.choice(digit))
-
+        otp += "".join(secrets.choice(digit))
+        # print(otp)
     return otp
 
 

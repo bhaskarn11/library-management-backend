@@ -33,6 +33,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        # print(payload)
         username: str = payload.get("sub")
         if username is None:
             return credentials_exception
@@ -64,7 +65,6 @@ def request_otp(email: str, db: Session):
         stmt = insert(models.Otp).values(data)
         upsert_stmt = stmt.on_conflict_do_update(
             index_elements=["user_id", "code"],
-            index_where=[],
             set_= data
         )
 
@@ -75,12 +75,12 @@ def request_otp(email: str, db: Session):
 
 
 def verify_otp(email: str, otp: str, db:Session):
-
+    time = datetime.now()
     user = db.query(models.User).filter_by(email=email).first()
     if user:
         match = db.query(models.Otp).filter_by(user_id=user.id, code=otp).first()
 
-        if match:
+        if match and match.expire_timestamp.timestamp() < time.timestamp():
             db.delete(match)
             db.commit()
             return True
